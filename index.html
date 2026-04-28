@@ -283,9 +283,12 @@
     let ctx = canvas.getContext("2d");
     let faceDetector = null;
     let modelReady = false;
+    let modelLoading = false;
 
     // Inicializar MediaPipe FaceDetector
     async function initFaceDetector() {
+        if (modelLoading || modelReady) return;
+        modelLoading = true;
         try {
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/"
@@ -300,7 +303,6 @@
             modelReady = true;
             console.log("MediaPipe FaceDetector ready");
         } catch(e) {
-            console.warn("GPU fallback, usando CPU:", e);
             try {
                 const vision = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/"
@@ -318,6 +320,7 @@
                 console.error("FaceDetector init failed:", e2);
             }
         }
+        modelLoading = false;
     }
     initFaceDetector();
 
@@ -352,12 +355,21 @@
             document.getElementById("originalImg").src = canvas.toDataURL();
 
             if (!modelReady) {
-                document.getElementById("loadText").textContent = "Iniciando detector de rostros...";
+                document.getElementById("loadText").textContent = "Cargando detector de rostros...";
+                await initFaceDetector();
                 // Esperar hasta que el modelo esté listo
-                for (let i = 0; i < 30; i++) {
+                for (let i = 0; i < 60; i++) {
                     if (modelReady) break;
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 500));
                 }
+            }
+
+            if (!faceDetector || !modelReady) {
+                alert("El detector de rostros no pudo cargarse. Probá recargar la página.");
+                document.getElementById("loadingInfo").classList.remove("active");
+                document.getElementById("uploadArea").style.display = "block";
+                document.getElementById("stepsPreview").style.display = "flex";
+                return;
             }
 
             document.getElementById("loadText").textContent = "Detectando rostros...";
