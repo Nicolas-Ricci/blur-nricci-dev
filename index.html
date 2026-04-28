@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blur · nricci.dev</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #b388ff, #7c4dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        .upload-area {
+            border: 2px dashed #333;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #7c4dff;
+            background: rgba(124,77,255,0.05);
+        }
+        .upload-area .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .upload-area p {
+            color: #888;
+        }
+        .upload-area input {
+            display: none;
+        }
+        .preview-area {
+            display: none;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .preview-area.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        .preview-card {
+            background: #12121a;
+            border: 1px solid #1e1e2e;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .preview-card .label {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+            border-bottom: 1px solid #1e1e2e;
+        }
+        .preview-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: contain;
+            display: block;
+            background: #0a0a0f;
+        }
+        .controls {
+            display: none;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .controls.active {
+            display: flex;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #7c4dff, #b388ff);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(124,77,255,0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #1e1e2e;
+            color: #e0e0e0;
+        }
+        .btn-secondary:hover {
+            background: #2a2a3e;
+        }
+        .info {
+            text-align: center;
+            color: #555;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #1e1e2e;
+        }
+        .info a {
+            color: #7c4dff;
+            text-decoration: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #1e1e2e;
+            border-top-color: #7c4dff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 600px) {
+            .preview-area.active { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✦ Blur</h1>
+            <p>Subí una foto y borrá los rostros al instante</p>
+        </header>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="icon">📷</div>
+            <p>Hacé clic o arrastrá una imagen</p>
+            <p style="font-size:0.8rem;margin-top:0.5rem;color:#555;">JPG, PNG — Máx 10MB</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Procesando rostros...</p>
+        </div>
+
+        <div class="preview-area" id="previewArea">
+            <div class="preview-card">
+                <div class="label">Original</div>
+                <img id="originalImg" src="" alt="Original">
+            </div>
+            <div class="preview-card">
+                <div class="label">Sin rostros</div>
+                <img id="blurredImg" src="" alt="Blurred">
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <button class="btn btn-primary" id="downloadBtn" disabled>⬇ Descargar</button>
+            <button class="btn btn-secondary" id="resetBtn">↺ Otra foto</button>
+        </div>
+
+        <div class="info">
+            Todo el procesamiento se hace en tu navegador.<br>
+            Las fotos no se suben a ningún servidor. · <a href="https://github.com/Nicolas-Ricci/blur-nricci-dev">Código fuente</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        let currentFile = null;
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
+
+        document.getElementById("uploadArea").addEventListener("click", () => {
+            document.getElementById("fileInput").click();
+        });
+
+        document.getElementById("uploadArea").addEventListener("dragover", (e) => {
+            e.preventDefault();
+            document.getElementById("uploadArea").classList.add("dragover");
+        });
+
+        document.getElementById("uploadArea").addEventListener("dragleave", () => {
+            document.getElementById("uploadArea").classList.remove("dragover");
+        });
+
+        document.getElementById("uploadArea").addEventListener("drop", (e) => {
+            e.preventDefault();
+            document.getElementById("uploadArea").classList.remove("dragover");
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith("image/")) handleFile(file);
+        });
+
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        });
+
+        async function handleFile(file) {
+            currentFile = file;
+            document.getElementById("uploadArea").style.display = "none";
+            document.getElementById("previewArea").classList.remove("active");
+            document.getElementById("controls").classList.remove("active");
+            document.getElementById("loading").classList.add("active");
+
+            const img = new Image();
+            img.onload = async () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                document.getElementById("originalImg").src = canvas.toDataURL();
+
+                try {
+                    await faceapi.nets.tinyFaceDetector.loadFromUri("https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights");
+                    const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }));
+
+                    if (detections.length === 0) {
+                        alert("No se detectaron rostros en la imagen.");
+                        document.getElementById("blurredImg").src = canvas.toDataURL();
+                    } else {
+                        detections.forEach(d => {
+                            const x = Math.max(0, d.box.x - 10);
+                            const y = Math.max(0, d.box.y - 10);
+                            const w = Math.min(img.width - x, d.box.width + 20);
+                            const h = Math.min(img.height - y, d.box.height + 20);
+                            const region = ctx.getImageData(x, y, w, h);
+                            const blurred = blurRegion(region, w, h, 35);
+                            ctx.putImageData(blurred, x, y);
+                        });
+                        document.getElementById("blurredImg").src = canvas.toDataURL();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Error al procesar: " + err.message);
+                }
+
+                document.getElementById("loading").classList.remove("active");
+                document.getElementById("previewArea").classList.add("active");
+                document.getElementById("controls").classList.add("active");
+                document.getElementById("downloadBtn").disabled = false;
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        function blurRegion(imageData, w, h, radius) {
+            const src = imageData.data;
+            const len = src.length;
+            const boxSize = radius * 2 + 1;
+            const boxSizeSq = boxSize * boxSize;
+            const result = new Uint8ClampedArray(len);
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let r = 0, g = 0, b = 0, a = 0, count = 0;
+                    for (let ky = -radius; ky <= radius; ky++) {
+                        for (let kx = -radius; kx <= radius; kx++) {
+                            const px = Math.min(w - 1, Math.max(0, x + kx));
+                            const py = Math.min(h - 1, Math.max(0, y + ky));
+                            const i = (py * w + px) * 4;
+                            r += src[i];
+                            g += src[i + 1];
+                            b += src[i + 2];
+                            a += src[i + 3];
+                            count++;
+                        }
+                    }
+                    const i = (y * w + x) * 4;
+                    result[i] = r / count;
+                    result[i + 1] = g / count;
+                    result[i + 2] = b / count;
+                    result[i + 3] = a / count;
+                }
+            }
+            return new ImageData(result, w, h);
+        }
+
+        document.getElementById("downloadBtn").addEventListener("click", () => {
+            const link = document.createElement("a");
+            link.download = "blurred-" + currentFile.name;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            document.getElementById("uploadArea").style.display = "block";
+            document.getElementById("previewArea").classList.remove("active");
+            document.getElementById("controls").classList.remove("active");
+            document.getElementById("fileInput").value = "";
+            currentFile = null;
+        });
+    </script>
+</body>
+</html>
