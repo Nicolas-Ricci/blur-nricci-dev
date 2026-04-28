@@ -7,422 +7,616 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.min.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #05070A;
+            background: #050510;
             color: #fff;
             line-height: 1.6;
             overflow-x: hidden;
         }
         html { scroll-behavior: smooth; }
-        :root { --accent-purp: #8B5CF6; --accent-pink: #D946EF; --accent-cyan: #06B6D4; --accent-blue: #3B82F6; --card-bg: #0D111A; --card-border: #1F2937; --text-muted: #9CA3AF; }
+        :root {
+            --cyan: #00D1FF;
+            --purp: #A153FF;
+            --card: #0F0F1A;
+            --border: rgba(255,255,255,0.06);
+            --muted: #A0A0B0;
+        }
 
+        /* Background */
+        .bg-glow {
+            position: fixed; top: -15%; left: 50%;
+            transform: translateX(-50%);
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(0,209,255,0.04), transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .content { position: relative; z-index: 1; }
+
+        /* Header */
         header {
             position: sticky; top: 0; z-index: 100;
-            backdrop-filter: blur(20px);
-            background: rgba(5,7,10,0.7);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(16px);
+            background: rgba(5,5,16,0.7);
+            border-bottom: 1px solid var(--border);
         }
-        .header-inner {
+        .h-inner {
             max-width: 1200px; margin: 0 auto;
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.5rem;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .logo { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
-        .logo svg { width: 28px; height: 28px; }
-        nav { display: flex; gap: 2rem; align-items: center; }
-        nav a { color: var(--text-muted); text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
+        .logo {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 1.1rem; font-weight: 700;
+        }
+        .logo .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purp)); }
+        .logo .sep { width: 1px; height: 18px; background: var(--border); margin: 0 0.25rem; }
+        .logo small { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+        nav { display: flex; gap: 1.75rem; align-items: center; }
+        nav a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; font-weight: 500; }
         nav a:hover { color: #fff; }
         .btn-nav {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 999px;
-            font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            background: linear-gradient(135deg, var(--cyan), var(--purp));
+            color: #fff; border: none; padding: 0.45rem 1.25rem;
+            border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
         }
-        .btn-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,130,246,0.3); }
+        .btn-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,209,255,0.25); }
 
+        /* Sections */
         section { padding: 5rem 1.5rem; }
-        .section-inner { max-width: 1200px; margin: 0 auto; }
+        .inner { max-width: 1200px; margin: 0 auto; }
 
-        .hero { padding: 2rem 1.5rem 5rem; position: relative; overflow: hidden; }
-        .hero::before {
-            content: ''; position: absolute; top: -30%; right: -10%;
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(139,92,246,0.08), transparent 70%);
+        /* Hero */
+        .hero { padding: 2rem 1.5rem 5rem; overflow: hidden; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: var(--card); border: 1px solid var(--border);
+            padding: 0.3rem 0.75rem; border-radius: 999px;
+            font-size: 0.72rem; color: var(--muted); margin-bottom: 1.25rem;
+            font-weight: 500;
+        }
+        .h1-lg {
+            font-size: 3.2rem; font-weight: 800; line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+        .h1-lg em { font-style: normal; background: linear-gradient(135deg, var(--cyan), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .h1-lg em.p { background: linear-gradient(135deg, var(--purp), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-p { color: var(--muted); font-size: 0.92rem; max-width: 480px; margin-bottom: 1.5rem; }
+        .hero-acts { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+        .btn-p {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: linear-gradient(135deg, var(--cyan), var(--purp));
+            color: #fff; border: none; padding: 0.7rem 1.5rem;
+            border-radius: 999px; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-p:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0,209,255,0.25); }
+        .btn-o {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: transparent; border: 1px solid rgba(255,255,255,0.15);
+            color: #fff; padding: 0.7rem 1.5rem; border-radius: 999px;
+            font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-o:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+        .hero-feats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .hero-feats .f { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--muted); }
+        .hero-feats .f svg { width: 16px; height: 16px; }
+
+        /* Mockup */
+        .mockup-wrap { position: relative; }
+        .mockup-wrap::before {
+            content: ''; position: absolute;
+            top: 5%; left: 10%; width: 80%; height: 90%;
+            background: radial-gradient(circle, rgba(161,83,255,0.06), transparent 70%);
             pointer-events: none;
         }
-        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-
-        .badge {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: rgba(139,92,246,0.1);
-            border: 1px solid rgba(139,92,246,0.2);
-            padding: 0.4rem 1rem; border-radius: 999px;
-            font-size: 0.8rem; color: var(--accent-purp); margin-bottom: 1.5rem;
+        .mockup {
+            background: #0a0a18;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
         }
-        .h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; }
-        .h1 .gradient-text { background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero-sub { color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin-bottom: 2rem; }
-        .hero-actions { display: flex; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-purp), var(--accent-pink));
-            color: #fff; border: none; padding: 0.85rem 2rem; border-radius: 999px;
-            font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s;
+        .mockup-titlebar {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.3); }
-        .btn-outline {
-            background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.15);
-            padding: 0.85rem 2rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem;
-            cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+        .mockup-titlebar .dot { width: 7px; height: 7px; border-radius: 50%; }
+        .mockup-titlebar .dot.r { background: #ff5f56; }
+        .mockup-titlebar .dot.y { background: #ffbd2e; }
+        .mockup-titlebar .dot.g { background: #27c93f; }
+        .mockup-titlebar span { font-size: 0.65rem; color: var(--muted); margin-left: 0.75rem; }
+        .mockup-body { padding: 1.25rem; }
+        .dropzone {
+            border: 2px dashed rgba(161,83,255,0.25);
+            border-radius: 12px; padding: 2rem; text-align: center;
+            cursor: pointer; transition: all 0.3s;
+            margin-bottom: 1rem;
         }
-        .btn-outline:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
-        .hero-features { display: flex; gap: 2rem; }
-        .hero-features .feat { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
-        .hero-features .feat svg { width: 18px; height: 18px; flex-shrink: 0; }
-
+        .dropzone:hover { border-color: var(--purp); background: rgba(161,83,255,0.03); }
+        .dropzone .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .dropzone p { color: var(--muted); font-size: 0.82rem; }
+        .dropzone p strong { color: #fff; }
+        .preview-area { margin-top: 1rem; display: none; }
+        .preview-area.active { display: block; }
+        .preview-img {
+            width: 100%; border-radius: 10px;
+            display: block; background: #000;
+        }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
         .preview-card {
-            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
-            padding: 2rem; box-shadow: 0 0 40px rgba(59,130,246,0.1); position: relative;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden;
         }
-        .drag-area {
-            border: 2px dashed rgba(139,92,246,0.3); border-radius: 16px; padding: 2.5rem;
-            text-align: center; cursor: pointer; transition: all 0.3s;
+        .preview-card .p-label {
+            padding: 0.4rem; font-size: 0.68rem;
+            color: var(--muted); text-align: center;
+            border-bottom: 1px solid var(--border);
         }
-        .drag-area:hover { border-color: var(--accent-purp); background: rgba(139,92,246,0.05); }
-        .drag-area .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-        .drag-area p { color: var(--text-muted); font-size: 0.9rem; }
-        .steps { display: flex; justify-content: space-between; margin: 1.5rem 0; gap: 0.5rem; }
-        .step { flex: 1; text-align: center; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 12px; }
-        .step .num {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan));
-            color: #fff; display: inline-flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem;
+        .preview-card img { width: 100%; height: 180px; object-fit: contain; display: block; background: #000; }
+        .mockup-cta {
+            width: 100%; margin-top: 1rem;
+            background: linear-gradient(135deg, #00D1FF, #A153FF);
+            color: #fff; border: none; padding: 0.75rem;
+            border-radius: 10px; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s;
         }
-        .step .s-label { font-size: 0.75rem; color: var(--text-muted); }
-        .btn-process {
-            width: 100%; background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan));
-            color: #fff; border: none; padding: 0.85rem; border-radius: 12px;
-            font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 1rem;
-        }
-        .btn-process:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(139,92,246,0.3); }
-
-        .preview-output { display: none; margin-top: 1.5rem; }
-        .preview-output.active { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .p-card { background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden; }
-        .p-card .p-label { padding: 0.5rem; font-size: 0.75rem; color: var(--text-muted); text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .p-card img { width: 100%; height: 200px; object-fit: contain; display: block; background: #000; }
-        .loading-info { display: none; text-align: center; padding: 1rem; }
-        .loading-info.active { display: block; }
-        .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-purp); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.5rem; }
+        .mockup-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,209,255,0.2); }
+        .loading-bar { display: none; text-align: center; padding: 1rem; }
+        .loading-bar.active { display: block; }
+        .spinner { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.08); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.5rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         #fileInput { display: none; }
 
-        .section-title { text-align: center; font-size: 2.2rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .section-sub { text-align: center; color: var(--text-muted); font-size: 1rem; margin-bottom: 3rem; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-        .how-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; transition: border-color 0.2s; }
-        .how-card:hover { border-color: rgba(139,92,246,0.3); }
-        .how-card .step-no { font-size: 0.8rem; color: rgba(139,92,246,0.5); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 1.5rem; }
-        .how-card .icon { margin-bottom: 1rem; }
-        .how-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .how-card p { color: var(--text-muted); font-size: 0.9rem; }
+        /* How */
+        .s-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .s-sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 3rem; }
+        .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: stretch; }
+        .how-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.75rem;
+            position: relative; transition: all 0.25s;
+        }
+        .how-card:hover { border-color: rgba(161,83,255,0.2); }
+        .how-card .icon { font-size: 2rem; margin-bottom: 1rem; }
+        .how-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; }
+        .how-card p { font-size: 0.82rem; color: var(--muted); }
+        .how-card .step { position: absolute; bottom: 1rem; right: 1.25rem; font-size: 0.75rem; color: rgba(161,83,255,0.3); font-weight: 700; letter-spacing: 0.02em; }
 
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-        .privacy-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem; text-align: center; }
-        .privacy-card .icon { font-size: 2rem; margin-bottom: 0.75rem; }
-        .privacy-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
-        .privacy-card p { color: var(--text-muted); font-size: 0.8rem; }
+        /* Privacy */
+        .grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .priv-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.5rem;
+            display: flex; gap: 1rem; align-items: flex-start;
+        }
+        .priv-card .icon { font-size: 1.5rem; flex-shrink: 0; width: 40px; height: 40px; background: rgba(0,209,255,0.06); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .priv-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
+        .priv-card p { font-size: 0.78rem; color: var(--muted); }
 
-        .grid-4-cases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-        .case-card { border-radius: 16px; overflow: hidden; position: relative; height: 260px; cursor: pointer; }
+        /* Use cases */
+        .cases-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+        .case-card { border-radius: 14px; overflow: hidden; position: relative; height: 240px; cursor: pointer; }
         .case-card .bg { position: absolute; inset: 0; }
-        .case-card .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.2)); }
-        .case-card .content { position: relative; z-index: 1; padding: 1.5rem; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
-        .case-card .icon-circle { position: absolute; top: 1rem; right: 1rem; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-        .case-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
-        .case-card p { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+        .case-card .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(5,5,16,0.9), rgba(5,5,16,0.2)); }
+        .case-card .content { position: relative; z-index: 1; padding: 1.25rem; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+        .case-card .icon-c { position: absolute; top: 0.75rem; left: 0.75rem; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .case-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.15rem; }
+        .case-card p { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
 
-        .cta-section { text-align: center; padding: 6rem 1.5rem; position: relative; }
-        .cta-section::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,92,246,0.06), transparent 70%); pointer-events: none; }
-        .cta-section h2 { font-size: 2.5rem; font-weight: 700; max-width: 700px; margin: 0 auto 1.5rem; }
+        /* CTA */
+        .cta-section { padding: 4rem 1.5rem; }
+        .cta-inner {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 3rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+            align-items: center;
+        }
+        .cta-graphic {
+            text-align: center; font-size: 5rem;
+            filter: drop-shadow(0 0 30px rgba(161,83,255,0.2));
+        }
+        .cta-graphic span { display: block; font-size: 1rem; color: var(--muted); margin-top: 0.5rem; }
+        .cta-text h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 1.25rem; line-height: 1.2; }
+        .cta-text h2 em { font-style: normal; background: linear-gradient(135deg, var(--cyan), var(--purp)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
-        footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        footer .copy { color: var(--text-muted); font-size: 0.85rem; }
-        footer nav a { font-size: 0.85rem; }
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 1.5rem 1.5rem;
+        }
+        .f-inner { max-width: 1200px; margin: 0 auto; }
+        .f-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr; gap: 2rem; margin-bottom: 2rem; }
+        .f-col .logo { font-size: 0.95rem; margin-bottom: 0.75rem; }
+        .f-col .bio { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; max-width: 280px; line-height: 1.5; }
+        .f-col .socials { display: flex; gap: 0.5rem; }
+        .f-col .socials a { color: var(--muted); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+        .f-col .socials a:hover { color: #fff; }
+        .f-col h5 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .f-col a.d { display: block; font-size: 0.75rem; color: var(--muted); text-decoration: none; margin-bottom: 0.3rem; transition: color 0.2s; }
+        .f-col a.d:hover { color: #fff; }
+        .f-col .status { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--muted); }
+        .f-col .status .g { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .f-hr { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin-bottom: 1rem; }
+        .f-bottom { text-align: center; font-size: 0.72rem; color: rgba(255,255,255,0.15); }
 
-        @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 2rem; } .h1 { font-size: 2.5rem; } .grid-3, .grid-4, .grid-4-cases { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 640px) { nav a:not(.btn-nav) { display: none; } .grid-3, .grid-4, .grid-4-cases { grid-template-columns: 1fr; } .hero-features { flex-direction: column; gap: 1rem; } .preview-output.active { grid-template-columns: 1fr; } .h1 { font-size: 2rem; } }
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .how-grid { grid-template-columns: 1fr; }
+            .cases-grid { grid-template-columns: repeat(2, 1fr); }
+            .cta-inner { grid-template-columns: 1fr; text-align: center; }
+            .f-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+            nav a:not(.btn-nav) { display: none; }
+            .grid-2x2 { grid-template-columns: 1fr; }
+            .cases-grid { grid-template-columns: 1fr; }
+            .f-grid { grid-template-columns: 1fr; }
+            .hero-feats { flex-direction: column; gap: 0.5rem; }
+            .h1-lg { font-size: 2.2rem; }
+            .cta-graphic { font-size: 3rem; }
+        }
     </style>
 </head>
 <body>
+<div class="bg-glow"></div>
+<div class="content">
+
 <header>
-    <div class="header-inner">
+    <div class="h-inner">
         <div class="logo">
-            <svg viewBox="0 0 28 28" fill="none">
-                <circle cx="14" cy="14" r="12" stroke="url(#g1)" stroke-width="1.5"/>
-                <path d="M14 6C9.58 6 6 9.58 6 14s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8z" fill="url(#g1)" opacity="0.15"/>
-                <circle cx="14" cy="14" r="4" fill="url(#g1)"/>
-                <defs>
-                    <linearGradient id="g1" x1="2" y1="2" x2="26" y2="26">
-                        <stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#06B6D4"/>
-                    </linearGradient>
-                </defs>
-            </svg>
+            <div class="dot"></div>
             Blur
+            <div class="sep"></div>
+            <small>blur.nricci.dev</small>
         </div>
         <nav>
             <a href="#how">Cómo funciona</a>
             <a href="#privacy">Privacidad</a>
             <a href="#cases">Casos de uso</a>
+            <a href="#">Precios</a>
             <button class="btn-nav" onclick="document.getElementById('fileInput').click()">Probar ahora →</button>
         </nav>
     </div>
 </header>
 
+<!-- Hero -->
 <section class="hero">
-    <div class="section-inner hero-grid">
+    <div class="inner hero-grid">
         <div>
-            <div class="badge">✦ Privacidad visual con IA</div>
-            <h1 class="h1">Borra rostros de tus fotos <span class="gradient-text">de forma rápida y segura</span></h1>
-            <p class="hero-sub">Subí una foto y dejá que la IA detecte y difumine automáticamente todos los rostros. Todo en tu navegador, nada se sube al servidor.</p>
-            <div class="hero-actions">
-                <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Subir imagen</button>
-                <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">▶ Cómo funciona</button>
+            <div class="badge">🛡️ Privacidad visual con IA</div>
+            <h1 class="h1-lg">Borra rostros de <em>tus fotos</em><br>de forma <em>rápida</em> y <em class="p">segura</em></h1>
+            <p class="hero-p">Subí una foto y dejá que la IA detecte y difumine automáticamente todos los rostros. Todo en tu navegador, protegé la identidad de las personas al instante.</p>
+            <div class="hero-acts">
+                <button class="btn-p" onclick="document.getElementById('fileInput').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    Subir foto
+                </button>
+                <button class="btn-o" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Ver cómo funciona
+                </button>
             </div>
-            <div class="hero-features">
-                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 100% Privado</div>
-                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-8.48 8.48M7.76 7.76l8.48 8.48"/></svg> Sin servidores</div>
-                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> En segundos</div>
+            <div class="hero-feats">
+                <div class="f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 100% Privado</div>
+                <div class="f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Rápido y automático</div>
+                <div class="f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Sin servidores</div>
             </div>
         </div>
-        <div>
-            <div class="preview-card">
-                <div class="drag-area" id="uploadArea">
-                    <div class="icon">📷</div>
-                    <p><strong>Arrastrá o seleccioná una imagen</strong></p>
-                    <p style="font-size:0.8rem;margin-top:0.25rem;color:#6B7280;">JPG, PNG · Máx 10MB</p>
-                    <input type="file" id="fileInput" accept="image/*">
+        <div class="mockup-wrap">
+            <div class="mockup">
+                <div class="mockup-titlebar">
+                    <div><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+                    <span>Blur — Face Detection</span>
                 </div>
-                <div class="loading-info" id="loadingInfo"><div class="spinner"></div><p style="color:var(--text-muted);font-size:0.85rem;" id="loadText">Iniciando detector de rostros...</p></div>
-                <div class="preview-output" id="previewOutput">
-                    <div class="p-card"><div class="p-label">Original</div><img id="originalImg" src="" alt="original"></div>
-                    <div class="p-card"><div class="p-label">Sin rostros</div><img id="blurredImg" src="" alt="blurred"></div>
+                <div class="mockup-body">
+                    <div class="dropzone" id="uploadArea">
+                        <div class="icon">📷</div>
+                        <p><strong>Arrastrá o seleccioná una imagen</strong></p>
+                        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">JPG, PNG · Máx 10MB</p>
+                        <input type="file" id="fileInput" accept="image/*">
+                    </div>
+                    <div class="loading-bar" id="loadingBar">
+                        <div class="spinner"></div>
+                        <p style="font-size:0.8rem;color:var(--muted);">Procesando...</p>
+                    </div>
+                    <div class="preview-area" id="previewArea">
+                        <div class="preview-grid">
+                            <div class="preview-card">
+                                <div class="p-label">Original</div>
+                                <img id="originalImg" src="" alt="original">
+                            </div>
+                            <div class="preview-card">
+                                <div class="p-label">Sin rostros</div>
+                                <img id="blurredImg" src="" alt="blurred">
+                            </div>
+                        </div>
+                        <button class="mockup-cta" id="downloadBtn" style="display:none">⬇ Descargar imagen</button>
+                        <button class="mockup-cta" id="resetBtn" style="display:none;background:rgba(255,255,255,0.06);margin-top:0.5rem">↺ Procesar otra</button>
+                    </div>
                 </div>
-                <div class="steps" id="stepsPreview">
-                    <div class="step"><div class="num">1</div><div class="s-label">Subí la foto</div></div>
-                    <div class="step"><div class="num">2</div><div class="s-label">Detectamos rostros</div></div>
-                    <div class="step"><div class="num">3</div><div class="s-label">Descargás</div></div>
-                </div>
-                <button class="btn-process" id="downloadBtn" style="display:none">⬇ Descargar imagen</button>
-                <button class="btn-process" id="resetBtn" style="display:none;background:rgba(255,255,255,0.1);margin-top:0.5rem">↺ Procesar otra</button>
             </div>
         </div>
     </div>
 </section>
 
+<!-- How -->
 <section id="how">
-    <div class="section-inner">
-        <h2 class="section-title">Cómo funciona</h2>
-        <p class="section-sub">Tres pasos simples para proteger la identidad de las personas en tus fotos</p>
-        <div class="grid-3">
-            <div class="how-card"><div class="step-no">01</div><div class="icon">📤</div><h3>Subí tu imagen</h3><p>Arrastrá cualquier foto al área indicada. Aceptamos JPG y PNG hasta 10MB.</p></div>
-            <div class="how-card"><div class="step-no">02</div><div class="icon">🤖</div><h3>Detección automática</h3><p>La IA localiza todos los rostros en la imagen. No se envía nada a ningún servidor.</p></div>
-            <div class="how-card"><div class="step-no">03</div><div class="icon">⬇</div><h3>Descargá el resultado</h3><p>Obtené tu imagen con los rostros difuminados lista para compartir.</p></div>
+    <div class="inner">
+        <h2 class="s-title">Cómo funciona</h2>
+        <p class="s-sub">Tres pasos simples para proteger la identidad de las personas.</p>
+        <div class="how-grid">
+            <div class="how-card">
+                <div class="icon">📸</div>
+                <h4>Cargá la foto</h4>
+                <p>Arrastrá cualquier imagen al área indicada. Aceptamos JPG y PNG hasta 10MB.</p>
+                <div class="step">01</div>
+            </div>
+            <div class="how-card">
+                <div class="icon">🤖</div>
+                <h4>Detectá rostros</h4>
+                <p>La IA localiza todos los rostros automáticamente. Sin enviar datos a ningún servidor.</p>
+                <div class="step">02</div>
+            </div>
+            <div class="how-card">
+                <div class="icon">⬇</div>
+                <h4>Descargá el resultado</h4>
+                <p>Obtené tu imagen con los rostros difuminados, lista para compartir sin preocupaciones.</p>
+                <div class="step">03</div>
+            </div>
         </div>
     </div>
 </section>
 
+<!-- Privacy -->
 <section id="privacy">
-    <div class="section-inner">
-        <h2 class="section-title">Privacidad como prioridad</h2>
-        <p class="section-sub">Tus datos nunca salen de tu dispositivo</p>
-        <div class="grid-4">
-            <div class="privacy-card"><div class="icon">🛡️</div><h4>100% Local</h4><p>Todo el procesamiento ocurre en tu navegador</p></div>
-            <div class="privacy-card"><div class="icon">🔒</div><h4>Sin almacenamiento</h4><p>No guardamos ni subimos ninguna imagen</p></div>
-            <div class="privacy-card"><div class="icon">📱</div><h4>Sin registro</h4><p>No necesitás crear cuenta ni loguearte</p></div>
-            <div class="privacy-card"><div class="icon">✨</div><h4>Código abierto</h4><p>Revisá el código en GitHub. Transparencia total</p></div>
+    <div class="inner">
+        <h2 class="s-title">Privacidad como prioridad</h2>
+        <p class="s-sub">Tus datos nunca salen de tu dispositivo.</p>
+        <div class="grid-2x2">
+            <div class="priv-card">
+                <div class="icon">🛡️</div>
+                <div>
+                    <h4>100% Local</h4>
+                    <p>Todo el procesamiento ocurre en tu navegador. No subimos nada a ningún servidor.</p>
+                </div>
+            </div>
+            <div class="priv-card">
+                <div class="icon">🔒</div>
+                <div>
+                    <h4>Sin almacenamiento</h4>
+                    <p>No guardamos ninguna imagen. Una vez que cerrás la página, todo se borra.</p>
+                </div>
+            </div>
+            <div class="priv-card">
+                <div class="icon">📱</div>
+                <div>
+                    <h4>Sin registro</h4>
+                    <p>No necesitás crear cuenta, loguearte ni compartir ningún dato personal.</p>
+                </div>
+            </div>
+            <div class="priv-card">
+                <div class="icon">✨</div>
+                <div>
+                    <h4>Código abierto</h4>
+                    <p>Todo el código está disponible en GitHub. Podés auditarlo cuando quieras.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
+<!-- Use Cases -->
 <section id="cases">
-    <div class="section-inner">
-        <h2 class="section-title">Casos de uso</h2>
-        <p class="section-sub">Ideal para proteger la identidad en cualquier contexto</p>
-        <div class="grid-4-cases">
-            <div class="case-card"><div class="bg" style="background:linear-gradient(135deg,#1a1a3e,#2a1a4e)"></div><div class="overlay"></div><div class="icon-circle">🎉</div><div class="content"><h4>Eventos</h4><p>Compartí fotos de reuniones sin exponer a nadie</p></div></div>
-            <div class="case-card"><div class="bg" style="background:linear-gradient(135deg,#1a3e2a,#1a4e3a)"></div><div class="overlay"></div><div class="icon-circle">🏫</div><div class="content"><h4>Escuelas</h4><p>Protegé a menores en materiales educativos</p></div></div>
-            <div class="case-card"><div class="bg" style="background:linear-gradient(135deg,#3e1a1a,#4e1a2a)"></div><div class="overlay"></div><div class="icon-circle">📄</div><div class="content"><h4>Reportes</h4><p>Documentación visual con identidades protegidas</p></div></div>
-            <div class="case-card"><div class="bg" style="background:linear-gradient(135deg,#1a2a3e,#1a1a4e)"></div><div class="overlay"></div><div class="icon-circle">🌐</div><div class="content"><h4>Redes Sociales</h4><p>Publicá contenido sin preocuparte por privacidad</p></div></div>
+    <div class="inner">
+        <h2 class="s-title">Casos de uso</h2>
+        <p class="s-sub">Ideal para proteger la identidad en cualquier contexto visual.</p>
+        <div class="cases-grid">
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a1a3e,#2a1a5e)"></div>
+                <div class="overlay"></div>
+                <div class="icon-c">🎉</div>
+                <div class="content">
+                    <h4>Eventos y reuniones</h4>
+                    <p>Compartí fotos de celebraciones sin exponer a los asistentes.</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a3e2a,#1a5e3a)"></div>
+                <div class="overlay"></div>
+                <div class="icon-c">🏫</div>
+                <div class="content">
+                    <h4>Fotos escolares</h4>
+                    <p>Protegé la identidad de menores en materiales educativos y comunicaciones.</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#3e1a1a,#5e1a2a)"></div>
+                <div class="overlay"></div>
+                <div class="icon-c">📄</div>
+                <div class="content">
+                    <h4>Reportes de campo</h4>
+                    <p>Documentación visual con identidades protegidas para informes profesionales.</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a2a3e,#1a1a5e)"></div>
+                <div class="overlay"></div>
+                <div class="icon-c">🌐</div>
+                <div class="content">
+                    <h4>Redes sociales</h4>
+                    <p>Publicá contenido visual sin preocuparte por la privacidad de los demás.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
+<!-- CTA -->
 <section class="cta-section">
-    <div class="section-inner">
-        <h2>Convertí cualquier foto en una imagen más segura para compartir</h2>
-        <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Empezar ahora →</button>
+    <div class="inner cta-inner">
+        <div class="cta-graphic">
+            🛡️
+            <span>Privacidad garantizada</span>
+        </div>
+        <div class="cta-text">
+            <h2>Convertí cualquier foto en una <em>imagen más segura</em> para compartir</h2>
+            <button class="btn-p" onclick="document.getElementById('fileInput').click()">Probar ahora →</button>
+        </div>
     </div>
 </section>
 
+<!-- Footer -->
 <footer>
-    <div class="footer-inner">
-        <div class="copy">© 2026 Blur · nricci.dev</div>
-        <nav><a href="https://github.com/Nicolas-Ricci/blur-nricci-dev">GitHub</a><a href="#" style="color:var(--text-muted)">Privacidad</a></nav>
+    <div class="f-inner">
+        <div class="f-grid">
+            <div class="f-col">
+                <div class="logo"><div class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purp));margin-right:0.35rem;vertical-align:middle"></div> Blur</div>
+                <p class="bio">Herramienta de difuminado facial 100% local. Creada por <strong>Nicolas Ricci</strong> para proteger la identidad de las personas en fotos.</p>
+                <div class="socials">
+                    <a href="#">𝕏</a>
+                    <a href="https://github.com/Nicolas-Ricci">GitHub</a>
+                    <a href="#">in</a>
+                    <a href="#">✉</a>
+                </div>
+            </div>
+            <div class="f-col">
+                <h5>Navegación</h5>
+                <a href="#" class="d">Inicio</a>
+                <a href="#how" class="d">Cómo funciona</a>
+                <a href="#privacy" class="d">Privacidad</a>
+                <a href="#cases" class="d">Casos de uso</a>
+            </div>
+            <div class="f-col">
+                <h5>Recursos</h5>
+                <a href="https://github.com/Nicolas-Ricci/blur-nricci-dev" class="d">Repositorio</a>
+                <a href="#" class="d">Documentación</a>
+                <a href="#" class="d">FAQ</a>
+                <a href="#" class="d">Reportar bug</a>
+            </div>
+            <div class="f-col">
+                <h5>Legal</h5>
+                <a href="#" class="d">Términos</a>
+                <a href="#" class="d">Privacidad</a>
+                <a href="#" class="d">Cookies</a>
+            </div>
+            <div class="f-col">
+                <h5>Conecta</h5>
+                <div class="status"><div class="g"></div> Disponible para proyectos</div>
+                <div style="font-size:0.75rem;color:var(--muted);margin-top:0.35rem;">ricci2356@gmail.com</div>
+                <div style="font-size:0.75rem;color:var(--muted);">Lima, Perú</div>
+            </div>
+        </div>
+        <div class="f-hr"></div>
+        <div class="f-bottom">© 2026 Blur. by nricci.dev — Todos los derechos reservados.</div>
     </div>
 </footer>
 
+</div>
+
 <script>
     let currentFile = null;
-    let canvas = document.createElement("canvas");
-    let ctx = canvas.getContext("2d");
     let faceDetector = null;
     let modelReady = false;
-    let modelLoading = false;
+    let canvas = document.createElement("canvas");
+    let ctx = canvas.getContext("2d");
 
-    // Inicializar MediaPipe FaceDetector
-    async function initFaceDetector() {
-        if (modelLoading || modelReady) return;
-        modelLoading = true;
+    // Cargar MediaPipe FaceDetector
+    async function initFD() {
         try {
-            const vision = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/"
-            );
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/");
             faceDetector = await FaceDetector.createFromOptions(vision, {
                 baseOptions: {
                     modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
                     delegate: "GPU"
-                },
-                runningMode: "IMAGE"
+                }, runningMode: "IMAGE"
             });
             modelReady = true;
-            console.log("MediaPipe FaceDetector ready");
         } catch(e) {
             try {
-                const vision = await FilesetResolver.forVisionTasks(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/"
-                );
+                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm/");
                 faceDetector = await FaceDetector.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
                         delegate: "CPU"
-                    },
-                    runningMode: "IMAGE"
+                    }, runningMode: "IMAGE"
                 });
                 modelReady = true;
-                console.log("MediaPipe FaceDetector ready (CPU)");
-            } catch(e2) {
-                console.error("FaceDetector init failed:", e2);
-            }
+            } catch(e2) { console.error("FD failed:", e2); }
         }
-        modelLoading = false;
     }
-    initFaceDetector();
+    initFD();
 
-    // Click en upload area
     document.getElementById("uploadArea").addEventListener("click", () => document.getElementById("fileInput").click());
-    document.getElementById("uploadArea").addEventListener("dragover", (e) => { e.preventDefault(); document.getElementById("uploadArea").classList.add("dragover"); });
+    document.getElementById("uploadArea").addEventListener("dragover", e => { e.preventDefault(); document.getElementById("uploadArea").classList.add("dragover"); });
     document.getElementById("uploadArea").addEventListener("dragleave", () => document.getElementById("uploadArea").classList.remove("dragover"));
-    document.getElementById("uploadArea").addEventListener("drop", (e) => {
-        e.preventDefault();
-        document.getElementById("uploadArea").classList.remove("dragover");
-        const f = e.dataTransfer.files[0];
-        if (f && f.type.startsWith("image/")) handleFile(f);
-    });
-    document.getElementById("fileInput").addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+    document.getElementById("uploadArea").addEventListener("drop", e => { e.preventDefault(); document.getElementById("uploadArea").classList.remove("dragover"); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith("image/")) handleFile(f); });
+    document.getElementById("fileInput").addEventListener("change", e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
     async function handleFile(file) {
         currentFile = file;
         document.getElementById("uploadArea").style.display = "none";
-        document.getElementById("stepsPreview").style.display = "none";
-        document.getElementById("previewOutput").classList.remove("active");
-        document.getElementById("loadingInfo").classList.add("active");
-        document.getElementById("loadText").textContent = "Cargando imagen...";
-        document.getElementById("downloadBtn").style.display = "none";
-        document.getElementById("resetBtn").style.display = "none";
+        document.getElementById("previewArea").classList.remove("active");
+        document.getElementById("loadingBar").classList.add("active");
 
         const img = new Image();
         img.onload = async () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
+            canvas.width = img.width; canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
-
             document.getElementById("originalImg").src = canvas.toDataURL();
 
             if (!modelReady) {
-                document.getElementById("loadText").textContent = "Cargando detector de rostros...";
-                await initFaceDetector();
-                // Esperar hasta que el modelo esté listo
-                for (let i = 0; i < 60; i++) {
-                    if (modelReady) break;
-                    await new Promise(r => setTimeout(r, 500));
-                }
+                for (let i = 0; i < 60; i++) { if (modelReady) break; await new Promise(r => setTimeout(r, 500)); }
             }
 
             if (!faceDetector || !modelReady) {
-                alert("El detector de rostros no pudo cargarse. Probá recargar la página.");
-                document.getElementById("loadingInfo").classList.remove("active");
+                alert("El detector no pudo cargarse. Recargá la página.");
+                document.getElementById("loadingBar").classList.remove("active");
                 document.getElementById("uploadArea").style.display = "block";
-                document.getElementById("stepsPreview").style.display = "flex";
                 return;
             }
 
-            document.getElementById("loadText").textContent = "Detectando rostros...";
-
             try {
                 const result = faceDetector.detect(canvas);
-                const detections = result.detections;
-
-                if (!detections || detections.length === 0) {
-                    alert("No se detectaron rostros en la imagen.");
-                } else {
-                    detections.forEach(d => {
-                        const box = d.boundingBox;
-                        const x = Math.max(0, box.originX - 10);
-                        const y = Math.max(0, box.originY - 10);
-                        const w = Math.min(img.width - x, box.width + 20);
-                        const h = Math.min(img.height - y, box.height + 20);
-                        const reg = ctx.getImageData(x, y, w, h);
-                        ctx.putImageData(blurRegion(reg, w, h, 30), x, y);
-                    });
-                }
+                const dets = result.detections;
+                if (!dets || dets.length === 0) alert("No se detectaron rostros.");
+                else dets.forEach(d => {
+                    const b = d.boundingBox;
+                    const x = Math.max(0, b.originX - 10), y = Math.max(0, b.originY - 10);
+                    const w = Math.min(img.width - x, b.width + 20), h = Math.min(img.height - y, b.height + 20);
+                    const reg = ctx.getImageData(x, y, w, h);
+                    ctx.putImageData(blurBox(reg, w, h, 30), x, y);
+                });
                 document.getElementById("blurredImg").src = canvas.toDataURL();
-            } catch(e) {
-                console.error(e);
-                alert("Error al procesar: " + e.message);
-            }
+            } catch(e) { alert("Error: " + e.message); }
 
-            document.getElementById("loadingInfo").classList.remove("active");
-            document.getElementById("previewOutput").classList.add("active");
+            document.getElementById("loadingBar").classList.remove("active");
+            document.getElementById("previewArea").classList.add("active");
             document.getElementById("downloadBtn").style.display = "block";
             document.getElementById("resetBtn").style.display = "block";
         };
         img.src = URL.createObjectURL(file);
     }
 
-    function blurRegion(imageData, w, h, r) {
-        const src = imageData.data, len = src.length;
-        const res = new Uint8ClampedArray(len);
-        const boxSize = r * 2 + 1;
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                let rr = 0, gg = 0, bb = 0, aa = 0, c = 0;
-                for (let ky = -r; ky <= r; ky++) {
-                    for (let kx = -r; kx <= r; kx++) {
-                        const px = Math.min(w - 1, Math.max(0, x + kx));
-                        const py = Math.min(h - 1, Math.max(0, y + ky));
-                        const i = (py * w + px) * 4;
-                        rr += src[i]; gg += src[i + 1]; bb += src[i + 2]; aa += src[i + 3]; c++;
-                    }
-                }
-                const i = (y * w + x) * 4;
-                res[i] = rr / c; res[i+1] = gg / c; res[i+2] = bb / c; res[i+3] = aa / c;
+    function blurBox(id, w, h, r) {
+        const s = id.data, len = s.length, res = new Uint8ClampedArray(len);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            let rr=0,gg=0,bb=0,aa=0,c=0;
+            for (let ky=-r; ky<=r; ky++) for (let kx=-r; kx<=r; kx++) {
+                const px=Math.min(w-1,Math.max(0,x+kx)), py=Math.min(h-1,Math.max(0,y+ky)), i=(py*w+px)*4;
+                rr+=s[i]; gg+=s[i+1]; bb+=s[i+2]; aa+=s[i+3]; c++;
             }
+            const i=(y*w+x)*4;
+            res[i]=rr/c; res[i+1]=gg/c; res[i+2]=bb/c; res[i+3]=aa/c;
         }
         return new ImageData(res, w, h);
     }
@@ -433,11 +627,9 @@
         link.href = canvas.toDataURL("image/png");
         link.click();
     });
-
     document.getElementById("resetBtn").addEventListener("click", () => {
         document.getElementById("uploadArea").style.display = "block";
-        document.getElementById("stepsPreview").style.display = "flex";
-        document.getElementById("previewOutput").classList.remove("active");
+        document.getElementById("previewArea").classList.remove("active");
         document.getElementById("downloadBtn").style.display = "none";
         document.getElementById("resetBtn").style.display = "none";
         document.getElementById("fileInput").value = "";
