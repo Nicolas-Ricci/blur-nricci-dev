@@ -4,324 +4,720 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blur · nricci.dev</title>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #05070A;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
+        html { scroll-behavior: smooth; }
+
+        /* Colors */
+        :root {
+            --accent-purp: #8B5CF6;
+            --accent-pink: #D946EF;
+            --accent-cyan: #06B6D4;
+            --accent-blue: #3B82F6;
+            --card-bg: #0D111A;
+            --card-border: #1F2937;
+            --text-muted: #9CA3AF;
         }
+
+        /* Header */
         header {
-            text-align: center;
-            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(5,7,10,0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #b388ff, #7c4dff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        header p {
-            color: #666;
-            margin-top: 0.5rem;
-        }
-        .upload-area {
-            border: 2px dashed #333;
-            border-radius: 16px;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 1.5rem;
-        }
-        .upload-area:hover, .upload-area.dragover {
-            border-color: #7c4dff;
-            background: rgba(124,77,255,0.05);
-        }
-        .upload-area .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .upload-area p {
-            color: #888;
-        }
-        .upload-area input {
-            display: none;
-        }
-        .preview-area {
-            display: none;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .preview-area.active {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-        .preview-card {
-            background: #12121a;
-            border: 1px solid #1e1e2e;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .preview-card .label {
-            padding: 0.75rem;
-            font-size: 0.85rem;
-            color: #888;
-            text-align: center;
-            border-bottom: 1px solid #1e1e2e;
-        }
-        .preview-card img {
-            width: 100%;
-            height: 300px;
-            object-fit: contain;
-            display: block;
-            background: #0a0a0f;
-        }
-        .controls {
-            display: none;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .controls.active {
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
             display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .btn {
-            padding: 0.75rem 2rem;
-            border-radius: 10px;
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo svg { width: 28px; height: 28px; }
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        nav a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: #fff; }
+        .btn-nav {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #fff;
             border: none;
-            font-size: 0.95rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #7c4dff, #b388ff);
-            color: #fff;
-        }
-        .btn-primary:hover {
+        .btn-nav:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(124,77,255,0.3);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.3);
         }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .menu-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+        /* Sections */
+        section { padding: 5rem 1.5rem; }
+        .section-inner {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        .btn-secondary {
-            background: #1e1e2e;
-            color: #e0e0e0;
+
+        /* Hero */
+        .hero {
+            padding: 2rem 1.5rem 5rem;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-secondary:hover {
-            background: #2a2a3e;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139,92,246,0.08), transparent 70%);
+            pointer-events: none;
         }
-        .info {
-            text-align: center;
-            color: #555;
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: var(--accent-purp);
+            margin-bottom: 1.5rem;
+        }
+        .h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+        .h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-sub {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin-bottom: 2rem;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-purp), var(--accent-pink));
+            color: #fff;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.3); }
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 0.85rem 2rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+        .hero-features {
+            display: flex;
+            gap: 2rem;
+        }
+        .hero-features .feat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             font-size: 0.85rem;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #1e1e2e;
+            color: var(--text-muted);
         }
-        .info a {
-            color: #7c4dff;
-            text-decoration: none;
-        }
-        .loading {
-            display: none;
-            text-align: center;
+        .hero-features .feat svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        /* Hero Preview */
+        .preview-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
             padding: 2rem;
+            box-shadow: 0 0 40px rgba(59,130,246,0.1);
+            position: relative;
         }
-        .loading.active {
-            display: block;
+        .preview-card .drag-area {
+            border: 2px dashed rgba(139,92,246,0.3);
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #1e1e2e;
-            border-top-color: #7c4dff;
+        .preview-card .drag-area:hover { border-color: var(--accent-purp); background: rgba(139,92,246,0.05); }
+        .preview-card .drag-area .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+        .preview-card .drag-area p { color: var(--text-muted); font-size: 0.9rem; }
+        .preview-card .steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+            gap: 0.5rem;
+        }
+        .preview-card .step {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        .preview-card .step .num {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan));
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
+        .preview-card .step .s-label { font-size: 0.75rem; color: var(--text-muted); }
+        .preview-card .btn-process {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-purp), var(--accent-cyan));
+            color: #fff;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+        .preview-card .btn-process:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(139,92,246,0.3); }
+
+        /* Preview output */
+        .preview-output { display: none; margin-top: 1.5rem; }
+        .preview-output.active { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .preview-output .p-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .preview-output .p-card .p-label {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .preview-output .p-card img { width: 100%; height: 200px; object-fit: contain; display: block; background: #000; }
+        .loading-spinner { display: none; text-align: center; padding: 1rem; }
+        .loading-spinner.active { display: block; }
+        .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-purp); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.5rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 600px) {
-            .preview-area.active { grid-template-columns: 1fr; }
+
+        /* How it works */
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .section-sub {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 3rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .how-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+        .how-card:hover { border-color: rgba(139,92,246,0.3); }
+        .how-card .step-no {
+            font-size: 0.8rem;
+            color: rgba(139,92,246,0.5);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+        .how-card .icon { margin-bottom: 1rem; }
+        .how-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .how-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Privacy */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        .privacy-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .privacy-card .icon { font-size: 2rem; margin-bottom: 0.75rem; }
+        .privacy-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .privacy-card p { color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Use Cases */
+        .grid-4-cases {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        .case-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            height: 260px;
+            cursor: pointer;
+        }
+        .case-card .bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .case-card .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.2));
+        }
+        .case-card .content {
+            position: relative;
+            z-index: 1;
+            padding: 1.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .case-card .icon-circle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .case-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .case-card p { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+
+        /* CTA Final */
+        .cta-section {
+            text-align: center;
+            padding: 6rem 1.5rem;
+            position: relative;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139,92,246,0.06), transparent 70%);
+            pointer-events: none;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+        }
+        .cta-section .btn-primary {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 2rem 1.5rem;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer .copy { color: var(--text-muted); font-size: 0.85rem; }
+        footer nav a { font-size: 0.85rem; }
+
+        /* File input hidden */
+        #fileInput { display: none; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .h1 { font-size: 2.5rem; }
+            .grid-3, .grid-4, .grid-4-cases { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            nav a:not(.btn-nav) { display: none; }
+            .grid-3, .grid-4, .grid-4-cases { grid-template-columns: 1fr; }
+            .hero-features { flex-direction: column; gap: 1rem; }
+            .preview-output.active { grid-template-columns: 1fr; }
+            .h1 { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>✦ Blur</h1>
-            <p>Subí una foto y borrá los rostros al instante</p>
-        </header>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="icon">📷</div>
-            <p>Hacé clic o arrastrá una imagen</p>
-            <p style="font-size:0.8rem;margin-top:0.5rem;color:#555;">JPG, PNG — Máx 10MB</p>
-            <input type="file" id="fileInput" accept="image/*">
+<!-- Header -->
+<header>
+    <div class="header-inner">
+        <div class="logo">
+            <svg viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="14" r="12" stroke="url(#g1)" stroke-width="1.5"/>
+                <path d="M14 6C9.58 6 6 9.58 6 14s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8z" fill="url(#g1)" opacity="0.15"/>
+                <circle cx="14" cy="14" r="4" fill="url(#g1)"/>
+                <defs>
+                    <linearGradient id="g1" x1="2" y1="2" x2="26" y2="26">
+                        <stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#06B6D4"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            Blur
         </div>
+        <nav>
+            <a href="#how">Cómo funciona</a>
+            <a href="#privacy">Privacidad</a>
+            <a href="#cases">Casos de uso</a>
+            <button class="btn-nav" onclick="document.getElementById('uploadArea').click()">Probar ahora →</button>
+        </nav>
+    </div>
+</header>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Procesando rostros...</p>
-        </div>
-
-        <div class="preview-area" id="previewArea">
-            <div class="preview-card">
-                <div class="label">Original</div>
-                <img id="originalImg" src="" alt="Original">
+<!-- Hero -->
+<section class="hero">
+    <div class="section-inner hero-grid">
+        <div>
+            <div class="badge">✦ Privacidad visual con IA</div>
+            <h1 class="h1">Borra rostros de tus fotos <span class="gradient-text">de forma rápida y segura</span></h1>
+            <p class="hero-sub">Subí una foto y dejá que la IA detecte y difumine automáticamente todos los rostros. Todo en tu navegador, nada se sube al servidor.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="document.getElementById('uploadArea').click()">Subir imagen</button>
+                <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">▶ Cómo funciona</button>
             </div>
-            <div class="preview-card">
-                <div class="label">Sin rostros</div>
-                <img id="blurredImg" src="" alt="Blurred">
+            <div class="hero-features">
+                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 100% Privado</div>
+                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-8.48 8.48M7.76 7.76l8.48 8.48"/></svg> Sin servidores</div>
+                <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> En segundos</div>
             </div>
         </div>
-
-        <div class="controls" id="controls">
-            <button class="btn btn-primary" id="downloadBtn" disabled>⬇ Descargar</button>
-            <button class="btn btn-secondary" id="resetBtn">↺ Otra foto</button>
-        </div>
-
-        <div class="info">
-            Todo el procesamiento se hace en tu navegador.<br>
-            Las fotos no se suben a ningún servidor. · <a href="https://github.com/Nicolas-Ricci/blur-nricci-dev">Código fuente</a>
+        <div>
+            <div class="preview-card">
+                <div class="drag-area" id="uploadArea">
+                    <div class="icon">📷</div>
+                    <p><strong>Arrastrá o seleccioná una imagen</strong></p>
+                    <p style="font-size:0.8rem;margin-top:0.25rem;color:#6B7280;">JPG, PNG · Máx 10MB</p>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+                <div class="loading-spinner" id="loading">
+                    <div class="spinner"></div>
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Procesando rostros...</p>
+                </div>
+                <div class="preview-output" id="previewOutput">
+                    <div class="p-card"><div class="p-label">Original</div><img id="originalImg" src="" alt="original"></div>
+                    <div class="p-card"><div class="p-label">Sin rostros</div><img id="blurredImg" src="" alt="blurred"></div>
+                </div>
+                <div class="steps" id="stepsPreview">
+                    <div class="step"><div class="num">1</div><div class="s-label">Subí la foto</div></div>
+                    <div class="step"><div class="num">2</div><div class="s-label">Detectamos rostros</div></div>
+                    <div class="step"><div class="num">3</div><div class="s-label">Descargás</div></div>
+                </div>
+                <button class="btn-process" id="downloadBtn" style="display:none">⬇ Descargar imagen</button>
+                <button class="btn-process" id="resetBtn" style="display:none;background:rgba(255,255,255,0.1);margin-top:0.5rem">↺ Procesar otra</button>
+            </div>
         </div>
     </div>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script>
-        let currentFile = null;
-        let canvas = document.createElement("canvas");
-        let ctx = canvas.getContext("2d");
+<!-- How it works -->
+<section id="how">
+    <div class="section-inner">
+        <h2 class="section-title">Cómo funciona</h2>
+        <p class="section-sub">Tres pasos simples para proteger la identidad de las personas en tus fotos</p>
+        <div class="grid-3">
+            <div class="how-card">
+                <div class="step-no">01</div>
+                <div class="icon">📤</div>
+                <h3>Subí tu imagen</h3>
+                <p>Arrastrá cualquier foto al área indicada. Aceptamos JPG y PNG hasta 10MB.</p>
+            </div>
+            <div class="how-card">
+                <div class="step-no">02</div>
+                <div class="icon">🤖</div>
+                <h3>Detección automática</h3>
+                <p>La IA localiza todos los rostros en la imagen. No se envía nada a ningún servidor.</p>
+            </div>
+            <div class="how-card">
+                <div class="step-no">03</div>
+                <div class="icon">⬇</div>
+                <h3>Descargá el resultado</h3>
+                <p>Obtené tu imagen con los rostros difuminados lista para compartir.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-        document.getElementById("uploadArea").addEventListener("click", () => {
-            document.getElementById("fileInput").click();
+<!-- Privacy -->
+<section id="privacy">
+    <div class="section-inner">
+        <h2 class="section-title">Privacidad como prioridad</h2>
+        <p class="section-sub">Tus datos nunca salen de tu dispositivo</p>
+        <div class="grid-4">
+            <div class="privacy-card">
+                <div class="icon">🛡️</div>
+                <h4>100% Local</h4>
+                <p>Todo el procesamiento ocurre en tu navegador</p>
+            </div>
+            <div class="privacy-card">
+                <div class="icon">🔒</div>
+                <h4>Sin almacenamiento</h4>
+                <p>No guardamos ni subimos ninguna imagen</p>
+            </div>
+            <div class="privacy-card">
+                <div class="icon">📱</div>
+                <h4>Sin registro</h4>
+                <p>No necesitás crear cuenta ni loguearte</p>
+            </div>
+            <div class="privacy-card">
+                <div class="icon">✨</div>
+                <h4>Código abierto</h4>
+                <p>Revisá el código en GitHub. Transparencia total</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Use Cases -->
+<section id="cases">
+    <div class="section-inner">
+        <h2 class="section-title">Casos de uso</h2>
+        <p class="section-sub">Ideal para proteger la identidad en cualquier contexto</p>
+        <div class="grid-4-cases">
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a1a3e,#2a1a4e)"></div>
+                <div class="overlay"></div>
+                <div class="icon-circle">🎉</div>
+                <div class="content">
+                    <h4>Eventos</h4>
+                    <p>Compartí fotos de reuniones sin exponer a nadie</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a3e2a,#1a4e3a)"></div>
+                <div class="overlay"></div>
+                <div class="icon-circle">🏫</div>
+                <div class="content">
+                    <h4>Escuelas</h4>
+                    <p>Protegé a menores en materiales educativos</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#3e1a1a,#4e1a2a)"></div>
+                <div class="overlay"></div>
+                <div class="icon-circle">📄</div>
+                <div class="content">
+                    <h4>Reportes</h4>
+                    <p>Documentación visual con identidades protegidas</p>
+                </div>
+            </div>
+            <div class="case-card">
+                <div class="bg" style="background:linear-gradient(135deg,#1a2a3e,#1a1a4e)"></div>
+                <div class="overlay"></div>
+                <div class="icon-circle">🌐</div>
+                <div class="content">
+                    <h4>Redes Sociales</h4>
+                    <p>Publicá contenido sin preocuparte por privacidad</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="section-inner">
+        <h2>Convertí cualquier foto en una imagen más segura para compartir</h2>
+        <button class="btn-primary" onclick="document.getElementById('uploadArea').click()">Empezar ahora →</button>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-inner">
+        <div class="copy">© 2026 Blur · nricci.dev</div>
+        <nav>
+            <a href="https://github.com/Nicolas-Ricci/blur-nricci-dev">GitHub</a>
+            <a href="#" style="color:var(--text-muted)">Privacidad</a>
+        </nav>
+    </div>
+</footer>
+
+<script>
+    let currentFile = null;
+    let canvas = document.createElement("canvas");
+    let ctx = canvas.getContext("2d");
+
+    document.querySelectorAll("#uploadArea, #uploadArea input").forEach(el => {
+        el.addEventListener("click", (e) => {
+            if (e.target.tagName !== "INPUT") document.getElementById("fileInput").click();
         });
+    });
 
-        document.getElementById("uploadArea").addEventListener("dragover", (e) => {
-            e.preventDefault();
-            document.getElementById("uploadArea").classList.add("dragover");
-        });
+    document.getElementById("uploadArea").addEventListener("dragover", (e) => { e.preventDefault(); document.getElementById("uploadArea").classList.add("dragover"); });
+    document.getElementById("uploadArea").addEventListener("dragleave", () => { document.getElementById("uploadArea").classList.remove("dragover"); });
+    document.getElementById("uploadArea").addEventListener("drop", (e) => {
+        e.preventDefault();
+        document.getElementById("uploadArea").classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f && f.type.startsWith("image/")) handleFile(f);
+    });
+    document.getElementById("fileInput").addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
-        document.getElementById("uploadArea").addEventListener("dragleave", () => {
-            document.getElementById("uploadArea").classList.remove("dragover");
-        });
+    async function handleFile(file) {
+        currentFile = file;
+        document.getElementById("uploadArea").style.display = "none";
+        document.getElementById("stepsPreview").style.display = "none";
+        document.getElementById("previewOutput").classList.remove("active");
+        document.getElementById("loading").classList.add("active");
+        document.getElementById("downloadBtn").style.display = "none";
+        document.getElementById("resetBtn").style.display = "none";
 
-        document.getElementById("uploadArea").addEventListener("drop", (e) => {
-            e.preventDefault();
-            document.getElementById("uploadArea").classList.remove("dragover");
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith("image/")) handleFile(file);
-        });
+        const img = new Image();
+        img.onload = async () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            document.getElementById("originalImg").src = canvas.toDataURL();
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri("https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights");
+                const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }));
+                if (detections.length === 0) alert("No se detectaron rostros.");
+                else detections.forEach(d => {
+                    const x = Math.max(0, d.box.x - 10), y = Math.max(0, d.box.y - 10);
+                    const w = Math.min(img.width - x, d.box.width + 20), h = Math.min(img.height - y, d.box.height + 20);
+                    const reg = ctx.getImageData(x, y, w, h);
+                    ctx.putImageData(blur(reg, w, h, 35), x, y);
+                });
+                document.getElementById("blurredImg").src = canvas.toDataURL();
+            } catch(e) { alert("Error: " + e.message); }
+            document.getElementById("loading").classList.remove("active");
+            document.getElementById("previewOutput").classList.add("active");
+            document.getElementById("downloadBtn").style.display = "block";
+            document.getElementById("resetBtn").style.display = "block";
+        };
+        img.src = URL.createObjectURL(file);
+    }
 
-        document.getElementById("fileInput").addEventListener("change", (e) => {
-            if (e.target.files[0]) handleFile(e.target.files[0]);
-        });
-
-        async function handleFile(file) {
-            currentFile = file;
-            document.getElementById("uploadArea").style.display = "none";
-            document.getElementById("previewArea").classList.remove("active");
-            document.getElementById("controls").classList.remove("active");
-            document.getElementById("loading").classList.add("active");
-
-            const img = new Image();
-            img.onload = async () => {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-
-                document.getElementById("originalImg").src = canvas.toDataURL();
-
-                try {
-                    await faceapi.nets.tinyFaceDetector.loadFromUri("https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights");
-                    const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }));
-
-                    if (detections.length === 0) {
-                        alert("No se detectaron rostros en la imagen.");
-                        document.getElementById("blurredImg").src = canvas.toDataURL();
-                    } else {
-                        detections.forEach(d => {
-                            const x = Math.max(0, d.box.x - 10);
-                            const y = Math.max(0, d.box.y - 10);
-                            const w = Math.min(img.width - x, d.box.width + 20);
-                            const h = Math.min(img.height - y, d.box.height + 20);
-                            const region = ctx.getImageData(x, y, w, h);
-                            const blurred = blurRegion(region, w, h, 35);
-                            ctx.putImageData(blurred, x, y);
-                        });
-                        document.getElementById("blurredImg").src = canvas.toDataURL();
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert("Error al procesar: " + err.message);
-                }
-
-                document.getElementById("loading").classList.remove("active");
-                document.getElementById("previewArea").classList.add("active");
-                document.getElementById("controls").classList.add("active");
-                document.getElementById("downloadBtn").disabled = false;
-            };
-            img.src = URL.createObjectURL(file);
-        }
-
-        function blurRegion(imageData, w, h, radius) {
-            const src = imageData.data;
-            const len = src.length;
-            const boxSize = radius * 2 + 1;
-            const boxSizeSq = boxSize * boxSize;
-            const result = new Uint8ClampedArray(len);
-
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let r = 0, g = 0, b = 0, a = 0, count = 0;
-                    for (let ky = -radius; ky <= radius; ky++) {
-                        for (let kx = -radius; kx <= radius; kx++) {
-                            const px = Math.min(w - 1, Math.max(0, x + kx));
-                            const py = Math.min(h - 1, Math.max(0, y + ky));
-                            const i = (py * w + px) * 4;
-                            r += src[i];
-                            g += src[i + 1];
-                            b += src[i + 2];
-                            a += src[i + 3];
-                            count++;
-                        }
-                    }
-                    const i = (y * w + x) * 4;
-                    result[i] = r / count;
-                    result[i + 1] = g / count;
-                    result[i + 2] = b / count;
-                    result[i + 3] = a / count;
-                }
+    function blur(imgData, w, h, r) {
+        const src = imgData.data, len = src.length;
+        const res = new Uint8ClampedArray(len);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            let rr=0,gg=0,bb=0,aa=0,c=0;
+            for (let ky=-r; ky<=r; ky++) for (let kx=-r; kx<=r; kx++) {
+                const px=Math.min(w-1,Math.max(0,x+kx)), py=Math.min(h-1,Math.max(0,y+ky)), i=(py*w+px)*4;
+                rr+=src[i]; gg+=src[i+1]; bb+=src[i+2]; aa+=src[i+3]; c++;
             }
-            return new ImageData(result, w, h);
+            const i=(y*w+x)*4;
+            res[i]=rr/c; res[i+1]=gg/c; res[i+2]=bb/c; res[i+3]=aa/c;
         }
+        return new ImageData(res, w, h);
+    }
 
-        document.getElementById("downloadBtn").addEventListener("click", () => {
-            const link = document.createElement("a");
-            link.download = "blurred-" + currentFile.name;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        });
-
-        document.getElementById("resetBtn").addEventListener("click", () => {
-            document.getElementById("uploadArea").style.display = "block";
-            document.getElementById("previewArea").classList.remove("active");
-            document.getElementById("controls").classList.remove("active");
-            document.getElementById("fileInput").value = "";
-            currentFile = null;
-        });
-    </script>
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.download = "blurred-" + (currentFile ? currentFile.name : "image.png");
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+    document.getElementById("resetBtn").addEventListener("click", () => {
+        document.getElementById("uploadArea").style.display = "block";
+        document.getElementById("stepsPreview").style.display = "flex";
+        document.getElementById("previewOutput").classList.remove("active");
+        document.getElementById("downloadBtn").style.display = "none";
+        document.getElementById("resetBtn").style.display = "none";
+        document.getElementById("fileInput").value = "";
+        currentFile = null;
+    });
+</script>
 </body>
 </html>
